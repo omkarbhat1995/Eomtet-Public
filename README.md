@@ -1,3 +1,5 @@
+This is just the ReadME document for the actual private repository as the original repository has exploits to gain certain certificates to gain access to the networks.
+
 Emotet Recreation 
 ====================
 A very simple, fast, multi-threaded HTTPS server and client.
