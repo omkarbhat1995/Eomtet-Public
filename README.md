@@ -1,4 +1,4 @@
-This is just the ReadME document for the actual private repository as the original repository has exploits to gain certain certificates to gain access to the networks.
+This is just the ReadME document for the actual private repository as the original repository has exploits to gain certain certificates to gain access to the networks. Along with exploits to gain access to admin for Windows and Linux.
 
 Emotet Recreation 
 ====================
