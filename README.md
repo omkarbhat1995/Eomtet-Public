@@ -1,38 +1,77 @@
 This is just the ReadME document for the actual private repository as the original repository has exploits to gain certain certificates to gain access to the networks. Along with exploits to gain access to admin for Windows and Linux.
 
-Emotet Recreation 
+Emotet Recreation : HTTPS C2 Simulation
 ====================
-A very simple, fast, multi-threaded HTTPS server and client.
-## Overview:
-This project is to build a Botnet that uses SSL for communication and has a single as well as multi-server support.
+A high-performance, multi-threaded C++/Python Command & Control (C2) simulation using SSL/TLS for secure communication.
+## 📋 Overview
 
-The protocol for a single server is as follows:
-1. The client(host) contacts the server to let the server know that it is activated and also provides a client id that will be used to uniquely identify the client to the server.
-2. Server checks if the client is already present and if it's server proceeds to Step 4. If this client is new, it goes to Step 3.
-3. Server checks if the said client has been sent a copy of the malware, if not then sends a copy of the malware and updates this information in its records.
-4. Once the client has been sent the malware server waits for updates from the clients.
-5. The server receives updates from the clients in order and stores all the files in a directory named *'files'*. The client goes to sleep after sending the update and then contacts the server again, so goes back to Step 1.
-
-
-The protocol for multi-server is as follows:
-1. The client (host) contacts the server to let the server know that it is activated and also provides a client id that will be used to uniquely identify the client to the server.
-2. Server checks if the client is already present and if it is server proceeds to Step 5. If this client is new, it goes to Step 3.
-3. Server checks if the new client is a handed off server or a completely new one. If it's handed off then it goes to Step 4. If the client is completely new then it hands it off to another server and then it goes to Step 1.
-4. Server checks if the said client has been sent a copy of the malware, if not then sends a copy of the malware and updates this information in its records.
-5. Once the client has been sent the malware server waits for updates from the clients.
-6. The server receives updates from the clients in order and stores all the files in a directory named *'files'*. The client goes to sleep after sending the update and then contacts the server again, so goes back to Step 1.
-
+This repository recreates the communication architecture of the Emotet botnet. It utilizes a Star Topology to manage client-server interactions, featuring both single-server and multi-server "handoff" capabilities.
 
 Language: C++, Python
-###  Versions:
-- Version 0   :  C++ Server and Client Bot-Net (Star Topology)
-- Version 1   :  Python Basic Botnet with Setup (Star Topology)
-- Version 2   :  Python Botnet with Basic Communication (Star Topology)
-- Version 3   :  Python Botnet in which server sends over the exe file and then waits and receives the updates from clients (Star Topology)
-- Version 4   :  Python Botnet in which server sends over the exe file and then waits and receives the updates from clients (parallelised) (Star Topology)
-- Version 1-multiserver   :  Python Botnet with multi-server, server sends a file and then waits for updates
-- Version 2-multiserver   :  Python Botnet with multi-server, server sends a file and then waits for updates (parallelized)
-- Version 3-multiserver   :  Python Botnet with Test Case and Shell scripts.
+
+### Core Features:
+* **Secure Communication:** All traffic is wrapped in SSL/TLS.
+* **Multi-threaded:** Handles multiple concurrent client connections.
+* **Star Topology:** Supports single-server and multi-server "handoff" logic.
+* **Cross-Platform:** Includes logic for both Windows and Linux environments.
+---
+## 🛠 Communication Protocols
+
+### Single-Server Protocol
+1. **Handshake:** Client contacts server with a unique `Client ID`.
+2. **Verification:** Server checks if the client is already known.
+3. **Payload Delivery:** If new, the server sends the malware binary and updates its database.
+4. **Synchronization:** Server transitions to a listening state for client updates.
+5. **Exfiltration:** Client sends updates to the `/files` directory, sleeps, and repeats from Step 1.
+
+### Multi-Server (Handoff) Protocol
+1. **Initial Contact:** Client contacts the primary server.
+2. **Handoff Logic:** If the client is new, the primary server redirects it to a secondary server to balance the load.
+3. **Execution:** Once assigned to a server, the standard delivery and update protocol (Steps 3-5 above) begins.
+
+---
+
+## ⚙️ Arguments & Configuration
+
+### Server Configuration
+| Argument | Description |
+| :--- | :--- |
+| `--ip` | Server IP address |
+| `--pt` | Server Port |
+| `--file_size` | Size of the payload file sent to clients (in kB) |
+| `--time` | Time window to accept new connections (seconds) |
+| `--flag` | Set to `True` for testing mode |
+| `--duration` | Total runtime for the test sequence (seconds) |
+
+### Client Configuration
+| Argument | Description |
+| :--- | :--- |
+| `--ip` | Target Server IP |
+| `--pt` | Target Server Port |
+| `--file_size` | Size of update files sent by client (in kB) |
+| `--var` | Allowed deviation in update file size (in kB) |
+| `--duration` | Frequency of client check-ins (seconds) |
+| `--flag` | Set to `True` for testing mode |
+
+---
+
+## 📊 Client Metadata Tracking
+The server maintains the following information for every connected host:
+
+| Field | Description |
+| :--- | :--- |
+| `localID` | Unique identifier for the client |
+| `Connections` | The active socket/connection object |
+| `ClientIP` | Source IP of the host |
+|`ClientPort`| Client's Port|
+| `Username` | OS Username of the host |
+| `Platform` | Operating System (Windows/Linux) |
+| `FileSent` | Status of malware payload delivery |
+| `Update_Number` | Incremental count of updates received |
+| `Last_Update_Time` | Timestamp of the most recent beacon |
+
+---
+
 
 
 ### Usage:
@@ -44,47 +83,36 @@ To test the setup follow the directions given below:
 3. Once both scripts have completed execution, run the test written in python named 'test_client_server.py'.
 To modify the test parameters take a look at the shell scripts and then modify as needed.
 
+## 🚀 Getting Started
 
-### Arguments:
-SERVER:
+### 1. Generate SSL Certificates
+SSL certificates are required for communication. Run the generation script located in the botnet directory:
+* Copy `client.crt`, `server.crt`, and `server.key` to the **Server** directory.
+* Copy `client.crt`, `server.crt`, and `client.key` to the **Client** directory.
 
-`python3 server.py --host ip --port pt --serfile file_size  --acpttime time --test flag --testduration duration`
-* ip : Server IP
-* pt : Server Port
-* file_size : Size of the file server sends to the client [in kB]
-* time : Time to Accept Connections [in seconds]
-* flag : Test flag: *True* if testing the program else *False*
-* duration : The time for which the program is going to run during testing [in seconds]
+### 2. Manual Execution
+```bash
+# Run the Server
+python3 server.py --host 127.0.0.1 --port 8080 --serfile 1024
 
-CLIENT:
+# Run the Client
+python3 client.py --host 127.0.0.1 --port 8080 --beacontime 60
+```
 
-`python3 client.py --host ip --port pt --updatesize file_size --varfile var --beacontime time --test flag --testduration duration`
-* ip : Server IP
-* pt : Server Port
-* file_size : Size of the update files sent by client [in kB]
-* var : Deviation in the file size [in kB]
-* time : Beaconing time [in seconds]
-* flag : Test flag: *True* if testing the program else *False*
-* duration : The time for which the program is going to run during testing [in seconds]
+---
 
-### Information Maintained by Server about Client(Host)
+## 🔐 SSL/TLS Troubleshooting
 
-| **Field** | **Information** |
-| ------ | ------ |
-| localID | Client ID |
-|Connections|Connection object for the client  |
-|ClientIP| Client's IP address|
-|ClientPort| Client's Port|
-|Username| Clients's Username|
-|Platform| Client's OS / Platform|
-|FileSent| Check if the malware file is sent to client|
-|Update_Number| Number of updates that are sent by the client|
-|Last_Update_Time|Last Time when update was received|
+If you encounter "Connection Refused" or "SSL Handshake Failed" errors, check the following:
 
-### Certificate Generation:
-Certificates are used for setting up the SSL communication. 
-Use the certificate generation script, to get *server.key*, *client.key*, *server.crt* and *client.crt*.
-The script is in the botnet directory. 
-After Certificates are generated follow these steps:
-1. Copy *client.crt*, *server.crt* & *server.key* to server directory.
-2. Copy *client.crt*, *server.crt* & *client.key* to client directory.
+1. **Certificate Pathing:** Ensure `.crt` and `.key` files are in the same directory as the script.
+2. **Common Name (CN) Mismatch:** The certificate `Common Name` should match the IP/hostname (use `127.0.0.1` for local testing).
+3. **Permissions:** On Linux, ensure the user has read access: `chmod 600 server.key`.
+4. **Clock Sync:** Ensure system clocks are synchronized, or the certificate may be viewed as invalid/expired.
+
+
+##  📂 Version History
+* **V0**: C++ Implementation. High-performance Star Topology.
+* **V1 - V2**: Python base with basic Star Topology communication.
+* **V3 - V4**: Payload delivery and parallelized update handling.
+* **V1 - V3**: (Multi-Server): Advanced handoff logic and shell script automation.
